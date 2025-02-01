@@ -9,7 +9,7 @@ export default function TrailMap() {
   const [imageDimensions, setImageDimensions] = useState([0, 0]); // Store image dimensions
 
   useEffect(() => {
-    fetch("/detected_lines.json")
+    fetch("/detected_edges.json")
       .then((response) => response.json())
       .then((data) => setLines(data))
       .catch((error) => console.error("Error loading lines:", error));
@@ -48,7 +48,7 @@ export default function TrailMap() {
       crs={L.CRS.Simple} // Important: Use L.CRS.Simple
     >
       <SetBounds/>
-      {/* <TileLayer url="" />  Remove or comment out TileLayer for CRS.Simple */}
+      {/* <TileLayer url=""/>  */}
       {lines.map((coords, index) => (
         <Polyline key={index} positions={coords} color="red" weight={2} />
       ))}
