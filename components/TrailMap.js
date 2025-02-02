@@ -1,57 +1,54 @@
-"use client"
+import React, { useEffect, useState } from 'react';
+import { MapContainer, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import dEdges from './detected_edges.json'; // Adjust the import path as needed
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-
-export default function TrailMap() {
-  const [lines, setLines] = useState([]);
-  const [imageDimensions, setImageDimensions] = useState([0, 0]); // Store image dimensions
+const TrailMap = () => {
+  const [edges, setEdges] = useState([]);
+  const [imageDimensions, setImageDimensions] = useState([0, 0]);
 
   useEffect(() => {
-    fetch("/detected_edges.json")
-      .then((response) => response.json())
-      .then((data) => setLines(data))
-      .catch((error) => console.error("Error loading lines:", error));
+    setEdges(dEdges);
 
-      // Get Image Dimensions (Method 1: If you have the image readily available)
-      const img = new Image();
-      img.onload = () => {
-        setImageDimensions([img.width, img.height]); 
-      };
-      img.src = "/brown_map.jpeg"; // Path to your image
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions([img.width, img.height]); 
+    };
+    img.src = "/wboro_trail.jpg"; 
 
-    //Method 2: If you can read image data (e.g. from backend)
-    // fetch("/image_dimensions") // Example endpoint
-    // .then(r=>r.json())
-    // .then(d=>setImageDimensions(d))
-
-
+    console.log("detected edges", dEdges);
   }, []);
 
   function SetBounds() {
     const map = useMap();
-    useEffect(()=>{
-      if(imageDimensions[0] > 0 && imageDimensions[1] > 0){
+    useEffect(() => {
+      if (imageDimensions[0] > 0 && imageDimensions[1] > 0) {
         const bounds = [[0, 0], [imageDimensions[1], imageDimensions[0]]]; // Important: [height, width]
         map.fitBounds(bounds);
       }
-    }, [map, imageDimensions])
+    }, [map, imageDimensions]);
     return null;
   }
 
   return (
     <MapContainer
-      center={[imageDimensions[1]/2, imageDimensions[0]/2]} // Center of the image
-      zoom={0} // Start at zoom 0
+      center={[imageDimensions[1] / 2, imageDimensions[0] / 2]} 
+      zoom={2} // Increase zoom level
       style={{ height: "80vh", width: "100%" }}
-      crs={L.CRS.Simple} // Important: Use L.CRS.Simple
+      crs={L.CRS.Simple}
     >
-      <SetBounds/>
-      {/* <TileLayer url=""/>  */}
-      {lines.map((coords, index) => (
-        <Polyline key={index} positions={coords} color="red" weight={2} />
-      ))}
+      <SetBounds />
+      {/* Render edges */}
+      {lines.map((coords, index) => {
+        if (!coords || coords.length === 0 || coords.some(c => !Array.isArray(c) || c.length !== 2)) {
+          console.warn(`Invalid edge data at index ${index}:`, coords);
+          return null; // Skip invalid edge data
+        }
+
+        return <Polyline key={index} positions={coords} color="blue" weight={1} />;
+      })}
     </MapContainer>
   );
-}
+};
+
+export default TrailMap;
